@@ -8,42 +8,47 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         node:
+          - 12
+          - 14
+          - 15
           - 16
-          - 18
-          - 19
-          - 20
 
-        architecture:
-          - x64
-          - x86
+        include:
+          - node: 12
+            os: windows-2016
+          - node: 14
+            os: windows-2016
+          - node: 15
+            os: windows-2019
+          - node: 16
+            os: windows-2019
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2.1.5
         with:
           node-version: ${{ matrix.node }}
-          architecture: ${{ matrix.architecture }}
 
       - name: Install packages
-        run: npm install
+        run: npm install --unsafe-perm
         env:
           SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
       - name: Run tests
         run: npm test
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         if: github.repository_owner == 'sass' && github.event_name != 'pull_request'
         with:
-          name: ${{ matrix.node }}-${{ matrix.architecture }}
+          name: ${{ matrix.node }}
           path: |
             vendor/**/binding.node
             build/Release/binding.pdb
